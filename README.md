@@ -25,9 +25,11 @@ uv run python src/web.py
 
 The game opens at `http://127.0.0.1:8000` when run directly, or
 `http://127.0.0.1:8080` with `make play`. Enter the correct German sentence to
-move to the next row, or use the **Hint** and **Translation** buttons. Set the
-number beside **Hint** to reveal that many words from the start of the sentence.
-Press `Ctrl+C` in the terminal to stop the server.
+move to the next row, or use the **Hint** and **Translation** buttons. Choose
+**Drag words** to drag the tiles into the correct order (or focus a tile and use
+the arrow keys), or **Type answer** to enter the sentence. Set the number beside
+**Hint** to reveal that many words from the start of the sentence. Press `Ctrl+C`
+in the terminal to stop the server.
 
 Optional arguments:
 

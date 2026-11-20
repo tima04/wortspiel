@@ -67,12 +67,29 @@ def render_page(game):
         """
         progress = f"{len(game.jumbles)} / {len(game.jumbles)}"
     else:
+        words = "\n".join(
+            f'                <span class="word" draggable="true" tabindex="0" lang="de" '
+            f'title="Drag to reorder, or use the left and right arrow keys">{escape(word)}</span>'
+            for word in jumble.jumble.split()
+        )
         content = f"""
-            <p class="instructions">Put the words back in the correct German order.</p>
-            <p class="jumble" lang="de">{escape(jumble.jumble)}</p>
+            <p class="instructions" id="word-instructions">Put the words back in the correct German order by dragging or typing.</p>
+            <p class="jumbled-reference">Jumbled words: <strong lang="de">{escape(jumble.jumble)}</strong></p>
             <form method="post" action="/answer">
-                <label for="answer">Your answer</label>
-                <input id="answer" name="answer" lang="de" autocomplete="off" autofocus required>
+                <div class="answer-modes" role="group" aria-label="Answer mode">
+                    <button class="secondary mode-button" id="drag-mode" type="button" aria-pressed="true">Drag words</button>
+                    <button class="secondary mode-button" id="type-mode" type="button" aria-pressed="false">Type answer</button>
+                </div>
+                <div id="drag-panel">
+                    <div class="word-bank" id="word-bank" role="group" aria-describedby="word-instructions">
+{words}
+                    </div>
+                </div>
+                <div id="typing-panel" hidden>
+                    <label for="typed-answer">Your answer</label>
+                    <input id="typed-answer" lang="de" autocomplete="off" autofocus>
+                </div>
+                <input id="answer" name="answer" type="hidden" value="{escape(jumble.jumble)}">
                 <button type="submit">Check answer</button>
             </form>
             <div class="tools">
@@ -114,6 +131,34 @@ def render_page(game):
         h1 {{ margin: 0; font-size: 2rem; }}
         .progress {{ color: #667085; }}
         .instructions {{ margin-bottom: .5rem; }}
+        .jumbled-reference {{ font-size: 1.25rem; line-height: 1.5; }}
+        .jumbled-reference strong {{ display: block; }}
+        .answer-modes {{ display: flex; gap: .5rem; margin-top: 1rem; }}
+        .answer-modes .mode-button {{ margin-top: 0; background: #e4e7ec; color: #172033; }}
+        .answer-modes .mode-button[aria-pressed="true"] {{ background: #175cd3; color: white; }}
+        #typing-panel {{ margin-top: 1.5rem; }}
+        .word-bank {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            min-height: 4rem;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border: 2px dashed #98a2b3;
+            border-radius: .75rem;
+        }}
+        .word {{
+            padding: .6rem .85rem;
+            border: 1px solid #84adff;
+            border-radius: .5rem;
+            background: #eaf2ff;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: grab;
+            user-select: none;
+        }}
+        .word:focus-visible {{ outline: 3px solid #175cd3; outline-offset: 2px; }}
+        .word.dragging {{ opacity: .4; cursor: grabbing; }}
         .jumble {{
             margin: 1.5rem 0;
             font-size: clamp(1.5rem, 4vw, 2.2rem);
@@ -152,6 +197,9 @@ def render_page(game):
             main {{ background: #1d2939; }}
             .progress {{ color: #d0d5dd; }}
             .message {{ background: #1849a9; }}
+            .word {{ background: #1849a9; }}
+            .answer-modes .mode-button {{ background: #344054; color: #f2f4f7; }}
+            .answer-modes .mode-button[aria-pressed="true"] {{ background: #84adff; color: #101828; }}
             .tools .secondary {{ background: #344054; color: #f2f4f7; }}
         }}
         @media (max-width: 500px) {{ main {{ padding: 1.5rem; }} }}
@@ -164,6 +212,85 @@ def render_page(game):
         {message}
         {content}
     </main>
+    <script>
+        const bank = document.getElementById("word-bank");
+        if (bank) {{
+            const answer = document.getElementById("answer");
+            const typedAnswer = document.getElementById("typed-answer");
+            const dragPanel = document.getElementById("drag-panel");
+            const typingPanel = document.getElementById("typing-panel");
+            const dragMode = document.getElementById("drag-mode");
+            const typeMode = document.getElementById("type-mode");
+            let dragged = null;
+            let mode = "drag";
+
+            function updateAnswer() {{
+                answer.value = mode === "type"
+                    ? typedAnswer.value
+                    : Array.from(bank.querySelectorAll(".word"), word => word.textContent).join(" ");
+            }}
+
+            function showMode(nextMode) {{
+                mode = nextMode;
+                dragPanel.hidden = mode !== "drag";
+                typingPanel.hidden = mode !== "type";
+                dragMode.setAttribute("aria-pressed", mode === "drag");
+                typeMode.setAttribute("aria-pressed", mode === "type");
+                typedAnswer.required = mode === "type";
+                updateAnswer();
+                if (mode === "type") typedAnswer.focus();
+            }}
+
+            dragMode.addEventListener("click", () => showMode("drag"));
+            typeMode.addEventListener("click", () => showMode("type"));
+            typedAnswer.addEventListener("input", updateAnswer);
+            answer.form.addEventListener("submit", updateAnswer);
+
+            bank.addEventListener("dragstart", event => {{
+                dragged = event.target.closest(".word");
+                if (!dragged) return;
+                dragged.classList.add("dragging");
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", dragged.textContent);
+            }});
+
+            bank.addEventListener("dragend", () => {{
+                if (dragged) dragged.classList.remove("dragging");
+                dragged = null;
+            }});
+
+            bank.addEventListener("dragover", event => event.preventDefault());
+
+            bank.addEventListener("drop", event => {{
+                event.preventDefault();
+                if (!dragged) return;
+                const target = event.target.closest(".word");
+                if (target && target !== dragged) {{
+                    target.before(dragged);
+                }} else if (!target) {{
+                    bank.append(dragged);
+                }}
+                updateAnswer();
+            }});
+
+            bank.addEventListener("keydown", event => {{
+                const word = event.target.closest(".word");
+                if (!word) return;
+                if (event.key === "ArrowLeft" && word.previousElementSibling) {{
+                    event.preventDefault();
+                    word.previousElementSibling.before(word);
+                }} else if (event.key === "ArrowRight" && word.nextElementSibling) {{
+                    event.preventDefault();
+                    word.nextElementSibling.after(word);
+                }} else {{
+                    return;
+                }}
+                updateAnswer();
+            }});
+
+            updateAnswer();
+        }}
+    </script>
 </body>
 </html>
 """
