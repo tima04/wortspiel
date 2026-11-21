@@ -48,10 +48,10 @@ function playJumble(jumble: Jumble): boolean {
 if (import.meta.main) {
   try {
     const options = parseTerminalArguments(Deno.args);
-    await playTerminal(options.maxWords, options.words);
+    await playTerminal(options.maxWords, options.sentences);
   } catch (error) {
     if (error instanceof HelpRequested) {
-      console.log("Usage: deno task terminal [--words N --max-words N]");
+      console.log("Usage: deno task terminal [--sentences N --max-words N]");
     } else {
       console.error(error instanceof Error ? error.message : error);
       Deno.exitCode = 1;

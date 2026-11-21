@@ -121,12 +121,12 @@ async function openBrowser(url: string): Promise<void> {
 }
 
 export async function runWebServer(
-  words: number,
+  sentences: number,
   maxWords: number,
   port: number,
   noBrowser = false,
 ): Promise<void> {
-  const game = await BrowserGame.create(maxWords, words);
+  const game = await BrowserGame.create(maxWords, sentences);
   const controller = new AbortController();
   Deno.addSignalListener("SIGINT", () => {
     console.log("\nStopping Wortspiel.");
@@ -157,11 +157,11 @@ export async function runWebServer(
 if (import.meta.main) {
   try {
     const options = parseWebArguments(Deno.args);
-    await runWebServer(options.words, options.maxWords, options.port, options.noBrowser);
+    await runWebServer(options.sentences, options.maxWords, options.port, options.noBrowser);
   } catch (error) {
     if (error instanceof HelpRequested) {
       console.log(
-        "Usage: deno task start [--words N --max-words N --port PORT]\n" +
+        "Usage: deno task start [--sentences N --max-words N --port PORT]\n" +
           "Use deno task start:browser to open the game in a browser automatically.",
       );
     } else {

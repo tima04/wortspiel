@@ -37,10 +37,10 @@ Run Deno commands from `web/` unless noted otherwise:
 deno task start
 
 # Start with custom options
-deno task start --words 10 --max-words 8 --port 8080
+deno task start --sentences 10 --max-words 8 --port 8080
 
 # Play in the terminal
-deno task terminal --words 6 --max-words 8
+deno task terminal --sentences 6 --max-words 8
 
 # Run all required checks
 deno task verify
@@ -56,10 +56,10 @@ deno test game_test.ts
 ```
 
 From the repository root, `make play` starts the browser game on port 8080. Its
-`words` and `max-words` variables can be overridden, for example:
+`sentences` and `max-words` variables can be overridden, for example:
 
 ```sh
-make play words=8 max-words=6
+make play sentences=8 max-words=6
 ```
 
 There is no npm install or frontend build step. Run `deno task verify` after

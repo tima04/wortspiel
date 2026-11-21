@@ -24,7 +24,7 @@ make play
 Override the sentence count and maximum sentence length as needed:
 
 ```sh
-make play words=8 max-words=6
+make play sentences=8 max-words=6
 ```
 
 Or run the Deno app directly:
@@ -47,7 +47,7 @@ Optional arguments:
 
 ```sh
 cd web
-deno task start --words 10 --max-words 8 --port 8080
+deno task start --sentences 10 --max-words 8 --port 8080
 ```
 
 On Linux, `deno task start:browser` additionally grants permission to run only
@@ -82,7 +82,7 @@ deno task terminal
 Use the same optional sentence arguments:
 
 ```sh
-deno task terminal --words 6 --max-words 8
+deno task terminal --sentences 6 --max-words 8
 ```
 
 At the prompt, enter a German answer, `hint` (or `hint n` to reveal the first

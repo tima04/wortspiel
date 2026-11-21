@@ -1,12 +1,12 @@
 export interface WebArguments {
-  words: number;
+  sentences: number;
   maxWords: number;
   port: number;
   noBrowser: boolean;
 }
 
 export interface TerminalArguments {
-  words: number;
+  sentences: number;
   maxWords: number;
 }
 
@@ -26,7 +26,7 @@ function takeValue(args: readonly string[], index: number, option: string): stri
 }
 
 export function parseWebArguments(args: readonly string[]): WebArguments {
-  let words = 6;
+  let sentences = 6;
   let maxWords = 6;
   let port = 8000;
   let noBrowser = false;
@@ -34,8 +34,8 @@ export function parseWebArguments(args: readonly string[]): WebArguments {
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
     switch (option) {
-      case "--words":
-        words = positiveInteger(takeValue(args, index, option), option);
+      case "--sentences":
+        sentences = positiveInteger(takeValue(args, index, option), option);
         index += 1;
         break;
       case "--max-words":
@@ -61,18 +61,18 @@ export function parseWebArguments(args: readonly string[]): WebArguments {
     }
   }
 
-  return { words, maxWords, port, noBrowser };
+  return { sentences, maxWords, port, noBrowser };
 }
 
 export function parseTerminalArguments(args: readonly string[]): TerminalArguments {
-  let words = 1;
+  let sentences = 1;
   let maxWords = 6;
 
   for (let index = 0; index < args.length; index += 1) {
     const option = args[index];
     switch (option) {
-      case "--words":
-        words = positiveInteger(takeValue(args, index, option), option);
+      case "--sentences":
+        sentences = positiveInteger(takeValue(args, index, option), option);
         index += 1;
         break;
       case "--max-words":
@@ -87,7 +87,7 @@ export function parseTerminalArguments(args: readonly string[]): TerminalArgumen
     }
   }
 
-  return { words, maxWords };
+  return { sentences, maxWords };
 }
 
 export class HelpRequested extends Error {}
